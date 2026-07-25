@@ -37,7 +37,12 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public String createPaymentUrl(Long orderId, HttpServletRequest request) {
-        log.info("Generating VNPay payment URL for Order ID: {}", orderId);
+        return createPaymentUrl(orderId, request, "web");
+    }
+
+    @Transactional(readOnly = true)
+    public String createPaymentUrl(Long orderId, HttpServletRequest request, String platform) {
+        log.info("Generating VNPay payment URL for Order ID: {}, platform: {}", orderId, platform);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
 
@@ -57,7 +62,7 @@ public class PaymentService {
         vnp_Params.put("vnp_OrderInfo", "ThanhToanDonHangPokemon" + orderId);
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", getDynamicReturnUrl(request));
+        vnp_Params.put("vnp_ReturnUrl", getDynamicReturnUrl(request, platform));
         vnp_Params.put("vnp_IpAddr", ipAddress);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
@@ -110,7 +115,12 @@ public class PaymentService {
 
     @Transactional
     public String createTopUpPaymentUrl(BigDecimal amount, Long userId, HttpServletRequest request) {
-        log.info("Generating VNPay top-up payment URL for User ID: {}, Amount: {}", userId, amount);
+        return createTopUpPaymentUrl(amount, userId, request, "web");
+    }
+
+    @Transactional
+    public String createTopUpPaymentUrl(BigDecimal amount, Long userId, HttpServletRequest request, String platform) {
+        log.info("Generating VNPay top-up payment URL for User ID: {}, Amount: {}, platform: {}", userId, amount, platform);
 
         
         String txnRef = "TOPUP_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
@@ -141,7 +151,7 @@ public class PaymentService {
         vnp_Params.put("vnp_OrderInfo", "NapTienTaiKhoanPokemon" + txnRef);
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", getDynamicReturnUrl(request));
+        vnp_Params.put("vnp_ReturnUrl", getDynamicReturnUrl(request, platform));
         vnp_Params.put("vnp_IpAddr", ipAddress);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
@@ -292,12 +302,24 @@ public class PaymentService {
         }
     }
 
-    private String getDynamicReturnUrl(HttpServletRequest request) {
+    private String getDynamicReturnUrl(HttpServletRequest request, String platform) {
         String returnUrl = vnpConfig.getReturnUrl();
         if (request != null) {
             String serverName = request.getServerName();
             if (serverName != null && !serverName.equals("localhost") && !serverName.equals("127.0.0.1")) {
                 returnUrl = returnUrl.replace("localhost", serverName);
+            }
+        }
+        if ("mobile".equals(platform)) {
+            if (request != null) {
+                String serverName = request.getServerName();
+                if (serverName != null && !serverName.equals("localhost") && !serverName.equals("127.0.0.1")) {
+                    returnUrl = "http://" + serverName + "/api/payment/mobile-return";
+                } else {
+                    returnUrl = "http://localhost:8080/api/payment/mobile-return";
+                }
+            } else {
+                returnUrl = "http://localhost:8080/api/payment/mobile-return";
             }
         }
         return returnUrl;

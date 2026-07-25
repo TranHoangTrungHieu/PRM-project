@@ -48,7 +48,7 @@ public class SecurityConfig {
                 
                 .requestMatchers("/actuator/health").permitAll()
 
-                .requestMatchers("/api/payment/vnpay-callback", "/api/payment/vnpay-ipn").permitAll()
+                .requestMatchers("/api/payment/vnpay-callback", "/api/payment/vnpay-ipn", "/api/payment/mobile-return").permitAll()
                 
                 .requestMatchers("/h2-console/**").permitAll()
                 

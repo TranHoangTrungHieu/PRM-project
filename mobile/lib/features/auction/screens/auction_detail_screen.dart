@@ -7,6 +7,7 @@ import 'package:mobile/features/product/providers/market_provider.dart';
 import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/features/auction/models/auction.dart';
 import 'package:mobile/core/services/api_service.dart';
+import 'package:mobile/core/services/deep_link_handler.dart';
 import 'package:mobile/core/widgets/retry_network_image.dart';
 
 class AuctionDetailScreen extends StatefulWidget {
@@ -891,7 +892,7 @@ class _ClaimSheetContentState extends State<_ClaimSheetContent> {
       if (mounted) {
         Navigator.pop(context); // Close sheet
         if (_paymentMethod == 'VNPAY') {
-          final paymentUrl = await ApiService.createPaymentUrl(createdOrder.id);
+          final paymentUrl = await ApiService.createPaymentUrl(createdOrder.id, platform: 'mobile');
           if (mounted) {
             _showVNPayDialog(createdOrder.id, paymentUrl);
           }
@@ -981,6 +982,63 @@ class _ClaimSheetContentState extends State<_ClaimSheetContent> {
   }
 
   void _showVNPayDialog(int orderId, String paymentUrl) {
+    final deepLink = DeepLinkHandler();
+    deepLink.startListening();
+    deepLink.onPaymentResult.listen((result) {
+      deepLink.stopListening();
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (successCtx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 90, height: 90,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFECFDF5), shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 60),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text('Thanh toán thành công!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+                const SizedBox(height: 8),
+                const Text('Giao dịch VNPay đã được xác nhận.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(successCtx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('ĐỒNG Ý (OK)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1107,6 +1165,7 @@ class _ClaimSheetContentState extends State<_ClaimSheetContent> {
                     // Finish button
                     TextButton(
                       onPressed: () {
+                        deepLink.stopListening();
                         Navigator.pop(ctx); // Close VNPay dialog
                         
                         // Show success payment popup

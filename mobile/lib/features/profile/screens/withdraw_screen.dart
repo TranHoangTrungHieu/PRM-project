@@ -11,9 +11,47 @@ class WithdrawScreen extends StatefulWidget {
 }
 
 class _WithdrawScreenState extends State<WithdrawScreen> {
+  static const List<String> _vietnamBanks = [
+    'Vietcombank (VCB) - Ngân hàng Ngoại thương Việt Nam',
+    'VietinBank - Ngân hàng Công thương Việt Nam',
+    'BIDV - Ngân hàng Đầu tư và Phát triển Việt Nam',
+    'Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn',
+    'MB Bank - Ngân hàng Quân đội',
+    'Techcombank - Ngân hàng Kỹ thương Việt Nam',
+    'ACB - Ngân hàng Á Châu',
+    'VPBank - Ngân hàng Việt Nam Thịnh Vượng',
+    'HDBank - Ngân hàng Phát triển TP.HCM',
+    'SHB - Ngân hàng Sài Gòn - Hà Nội',
+    'VIB - Ngân hàng Quốc tế Việt Nam',
+    'Sacombank - Ngân hàng Sài Gòn Thương Tín',
+    'TPBank - Ngân hàng Tiên Phong',
+    'OCB - Ngân hàng Phương Đông',
+    'MSB - Ngân hàng Hàng Hải Việt Nam',
+    'SeABank - Ngân hàng Đông Nam Á',
+    'Eximbank - Ngân hàng Xuất Nhập khẩu Việt Nam',
+    'SCB - Ngân hàng Sài Gòn',
+    'LPBank - Ngân hàng Bưu điện Liên Việt',
+    'BacABank - Ngân hàng Bắc Á',
+    'NamABank - Ngân hàng Nam Á',
+    'PVcombank - Ngân hàng Đại chúng',
+    'ABBANK - Ngân hàng An Bình',
+    'VietABank - Ngân hàng Việt Á',
+    'NCB - Ngân hàng Quốc dân',
+    'VRB - Ngân hàng Liên doanh Việt Nga',
+    'KienLongBank - Ngân hàng Kiên Long',
+    'GPBank - Ngân hàng Dầu khí Toàn cầu',
+    'DongABank - Ngân hàng Đông Á',
+    'PublicBank - Ngân hàng Public Việt Nam',
+    'HSBC Việt Nam',
+    'Standard Chartered Việt Nam',
+    'ANZ Việt Nam',
+    'Shinhan Bank Việt Nam',
+    'CIMB Việt Nam',
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
-  final _bankNameController = TextEditingController();
+  String? _selectedBank;
   final _accountNumberController = TextEditingController();
   final _accountHolderController = TextEditingController();
   bool _isSubmitting = false;
@@ -21,7 +59,6 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   @override
   void dispose() {
     _amountController.dispose();
-    _bankNameController.dispose();
     _accountNumberController.dispose();
     _accountHolderController.dispose();
     super.dispose();
@@ -34,7 +71,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     try {
       await ApiService.createWithdrawRequest({
         'amount': double.parse(_amountController.text),
-        'bankName': _bankNameController.text.trim(),
+        'bankName': _selectedBank!,
         'bankAccountNumber': _accountNumberController.text.trim(),
         'accountHolder': _accountHolderController.text.trim(),
       });
@@ -149,8 +186,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF64748B), letterSpacing: 0.5)),
               const SizedBox(height: 12),
 
-              TextFormField(
-                controller: _bankNameController,
+              DropdownButtonFormField<String>(
+                value: _selectedBank,
                 decoration: InputDecoration(
                   labelText: 'Tên ngân hàng',
                   labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
@@ -164,8 +201,19 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
-                validator: (val) => (val == null || val.trim().isEmpty) ? 'Vui lòng nhập tên ngân hàng' : null,
+                isExpanded: true,
+                hint: const Text('Chọn ngân hàng', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+                icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
+                dropdownColor: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                items: _vietnamBanks.map((bank) => DropdownMenuItem<String>(
+                  value: bank,
+                  child: Text(bank, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B))),
+                )).toList(),
+                onChanged: (val) => setState(() => _selectedBank = val),
+                validator: (val) => val == null ? 'Vui lòng chọn ngân hàng' : null,
               ),
               const SizedBox(height: 12),
 

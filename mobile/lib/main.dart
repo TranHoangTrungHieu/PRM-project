@@ -16,13 +16,12 @@ import 'package:mobile/features/cart/screens/checkout_screen.dart';
 import 'package:mobile/features/gacha/screens/pack_simulator_screen.dart';
 import 'package:mobile/features/gacha/screens/my_collection_screen.dart';
 import 'package:mobile/features/auction/screens/auction_list_screen.dart';
-import 'package:mobile/features/trade/screens/trade_dashboard_screen.dart';
 import 'package:mobile/features/location/screens/location_list_screen.dart';
 import 'package:mobile/features/notification/screens/notification_list_screen.dart';
 import 'package:mobile/features/auction/screens/auction_detail_screen.dart';
 import 'package:mobile/features/auction/screens/sales_stats_screen.dart';
 import 'package:mobile/features/auction/screens/create_auction_screen.dart';
-import 'package:mobile/features/trade/screens/create_listing_screen.dart';
+
 import 'package:mobile/features/profile/screens/withdraw_screen.dart';
 import 'package:mobile/features/profile/screens/withdraw_history_screen.dart';
 import 'package:mobile/features/profile/screens/admin_withdraw_screen.dart';
@@ -86,12 +85,11 @@ class MyApp extends StatelessWidget {
               AppRoutes.packSimulator: (context) => const PackSimulatorScreen(),
               AppRoutes.myCollection: (context) => const MyCollectionScreen(),
               AppRoutes.auctions: (context) => const AuctionListScreen(),
-              AppRoutes.trades: (context) => const TradeDashboardScreen(),
               AppRoutes.locations: (context) => const LocationListScreen(),
               AppRoutes.notifications: (context) => const NotificationListScreen(),
               AppRoutes.salesStats: (context) => const SalesStatsScreen(),
               AppRoutes.createAuction: (context) => const CreateAuctionScreen(),
-              AppRoutes.createListing: (context) => const CreateListingScreen(),
+
               AppRoutes.withdraw: (context) => const WithdrawScreen(),
               AppRoutes.withdrawHistory: (context) => const WithdrawHistoryScreen(),
               AppRoutes.adminWithdraw: (context) => const AdminWithdrawScreen(),

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/core/services/api_service.dart';
+import 'package:mobile/core/services/deep_link_handler.dart';
 import 'package:mobile/core/widgets/retry_network_image.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
@@ -284,22 +285,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'Đấu Giá Thẻ Bài Live',
               route: '/auctions',
             ),
-            if (!isAdmin)
-              _buildProfileOption(
-                context,
-                icon: Icons.swap_horizontal_circle,
-                color: const Color(0xFFEC4899),
-                title: 'Sàn Trao Đổi Thẻ',
-                route: '/trades',
-              ),
-            if (!isAdmin)
-              _buildProfileOption(
-                context,
-                icon: Icons.sell,
-                color: const Color(0xFFE53935),
-                title: 'Đăng Bán Thẻ Bài',
-                route: '/create-listing',
-              ),
             _buildProfileOption(
               context,
               icon: Icons.map,
@@ -994,6 +979,18 @@ class _DepositSheetContentState extends State<_DepositSheetContent> {
   }
 
   void _showVNPayTopUpDialog(String txnRef, String paymentUrl, double amount) {
+    final deepLink = DeepLinkHandler();
+    deepLink.startListening();
+    deepLink.onPaymentResult.listen((result) {
+      deepLink.stopListening();
+      _dialogActive = false;
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      widget.auth.refreshProfile();
+      _showSuccessDialog(amount);
+    });
+
     bool pollingStarted = false;
     showDialog(
       context: context,
@@ -1197,7 +1194,7 @@ class _DepositSheetContentState extends State<_DepositSheetContent> {
         }
       } else {
         // VNPay Flow
-        final response = await ApiService.createTopUpUrl(amount);
+        final response = await ApiService.createTopUpUrl(amount, platform: 'mobile');
         final paymentUrl = response['paymentUrl'] ?? '';
         final txnRef = response['txnRef'] ?? '';
         

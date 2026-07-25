@@ -7,6 +7,7 @@ import com.pokemon.marketplace.repository.TopUpTransactionRepository;
 import com.pokemon.marketplace.repository.UserRepository;
 import com.pokemon.marketplace.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +35,10 @@ public class PaymentController {
     @GetMapping("/create-payment")
     public ResponseEntity<ApiResponse<String>> createPayment(
             @RequestParam Long orderId,
+            @RequestParam(required = false, defaultValue = "web") String platform,
             HttpServletRequest request) {
-        log.info("REST request to generate VNPay payment URL for order ID: {}", orderId);
-        String paymentUrl = paymentService.createPaymentUrl(orderId, request);
+        log.info("REST request to generate VNPay payment URL for order ID: {}, platform: {}", orderId, platform);
+        String paymentUrl = paymentService.createPaymentUrl(orderId, request, platform);
         return ResponseEntity.ok(ApiResponse.success(paymentUrl, "Payment URL generated successfully"));
     }
 
@@ -52,6 +56,35 @@ public class PaymentController {
             return ResponseEntity.ok(ApiResponse.success(result, "Thanh toán đơn hàng thành công!"));
         } else {
             return ResponseEntity.ok(ApiResponse.success(result, "Thanh toán thất bại hoặc đã bị hủy."));
+        }
+    }
+
+    @GetMapping("/mobile-return")
+    public void mobileReturn(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+        Map<String, String> params = new HashMap<>();
+        servletRequest.getParameterMap().forEach((key, values) -> {
+            if (values.length > 0) params.put(key, values[0]);
+        });
+        log.info("Mobile return from VNPay with params: {}", params);
+
+        boolean success = paymentService.processCallback(params);
+        String txnRef = params.getOrDefault("vnp_TxnRef", "");
+        String responseCode = params.getOrDefault("vnp_ResponseCode", "");
+        String status = "00".equals(responseCode) ? "success" : "failed";
+
+        try {
+            String encodedTxnRef = URLEncoder.encode(txnRef, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+            String html = "<!DOCTYPE html><html><head>"
+                + "<meta charset=\"UTF-8\">"
+                + "<meta http-equiv=\"refresh\" content=\"0;url=pokemonapp://payment-result?status=" + status + "&txnRef=" + encodedTxnRef + "\">"
+                + "<script>window.location.href = 'pokemonapp://payment-result?status=" + status + "&txnRef=" + encodedTxnRef + "';</script>"
+                + "</head><body>"
+                + "<p>Đang chuyển hướng về ứng dụng...</p>"
+                + "</body></html>";
+            servletResponse.setContentType("text/html; charset=UTF-8");
+            servletResponse.getWriter().write(html);
+        } catch (Exception e) {
+            log.error("Error writing mobile return HTML", e);
         }
     }
 
@@ -90,11 +123,12 @@ public class PaymentController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<Map<String, String>>> createTopUp(
             @RequestParam BigDecimal amount,
+            @RequestParam(required = false, defaultValue = "web") String platform,
             HttpServletRequest request) {
         Long userId = getAuthenticatedUserId();
-        log.info("REST request to generate VNPay top-up URL for User ID: {}, Amount: {}", userId, amount);
+        log.info("REST request to generate VNPay top-up URL for User ID: {}, Amount: {}, platform: {}", userId, amount, platform);
         
-        String paymentUrl = paymentService.createTopUpPaymentUrl(amount, userId, request);
+        String paymentUrl = paymentService.createTopUpPaymentUrl(amount, userId, request, platform);
         
         String txnRef = "";
         try {

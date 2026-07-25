@@ -15,6 +15,7 @@ dependencies:
   shared_preferences: ^2.2.3
   intl: ^0.19.0
   url_launcher: ^6.3.2
+  app_links: ^6.3.3
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   firebase_core: ^3.6.0

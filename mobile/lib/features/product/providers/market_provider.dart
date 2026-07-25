@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/product/models/product.dart';
-import 'package:mobile/features/trade/models/trade.dart';
 import 'package:mobile/features/auction/models/auction.dart';
 import 'package:mobile/core/services/api_service.dart';
 
 class MarketProvider with ChangeNotifier {
   List<Product> _products = [];
-  List<Trade> _trades = [];
   List<Auction> _auctions = [];
   bool _isLoading = false;
 
   List<Product> get products => _products;
-  List<Trade> get trades => _trades;
   List<Auction> get auctions => _auctions;
   bool get isLoading => _isLoading;
 
@@ -63,64 +60,6 @@ class MarketProvider with ChangeNotifier {
       final created = await ApiService.createAuction(auctionData);
       _auctions.insert(0, created);
       notifyListeners();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Fetch user trades
-  Future<void> fetchUserTrades(int userId) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _trades = await ApiService.getUserTrades(userId);
-    } catch (e) {
-      print('Error loading trades: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Propose trade
-  Future<void> proposeTrade(int toUserId, int offeredCardId, int requestedCardId) async {
-    try {
-      final payload = {
-        'toUserId': toUserId,
-        'offeredCardId': offeredCardId,
-        'requestedCardId': requestedCardId,
-      };
-      final t = await ApiService.createTrade(payload);
-      _trades.insert(0, t);
-      notifyListeners();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Accept trade
-  Future<void> acceptTrade(int id) async {
-    try {
-      final t = await ApiService.acceptTrade(id);
-      final index = _trades.indexWhere((item) => item.id == id);
-      if (index != -1) {
-        _trades[index] = t;
-        notifyListeners();
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Reject trade
-  Future<void> rejectTrade(int id) async {
-    try {
-      final t = await ApiService.rejectTrade(id);
-      final index = _trades.indexWhere((item) => item.id == id);
-      if (index != -1) {
-        _trades[index] = t;
-        notifyListeners();
-      }
     } catch (e) {
       rethrow;
     }

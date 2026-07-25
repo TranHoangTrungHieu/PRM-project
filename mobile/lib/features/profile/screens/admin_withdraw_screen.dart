@@ -59,23 +59,39 @@ class _AdminWithdrawScreenState extends State<AdminWithdrawScreen> {
   }
 
   Future<void> _complete(dynamic r) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Xác nhận'),
-        content: Text('Đã chuyển \$${r['amount']?.toStringAsFixed(2) ?? '0.00'} cho @${r['username'] ?? ''}?'),
+        title: const Text('XÁC NHẬN CHUYỂN KHOẢN'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Số tiền: \$${r['amount']?.toStringAsFixed(2) ?? '0.00'}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFE53935))),
+            const SizedBox(height: 4),
+            Text('Người nhận: @${r['username'] ?? ''}'),
+            Text('STK: ${r['bankAccountNumber'] ?? ''} - ${r['bankName'] ?? ''}'),
+            const SizedBox(height: 16),
+            const Text('Bạn đã thực sự chuyển khoản đến tài khoản trên chưa?',
+                style: TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('HỦY')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'no'),
+            child: const Text('CHƯA CHUYỂN', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(ctx, 'yes'),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
-            child: const Text('ĐÃ CHUYỂN KHOẢN'),
+            child: const Text('ĐÃ CHUYỂN THÀNH CÔNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
           ),
         ],
       ),
     );
-    if (confirm != true) return;
+    if (confirm != 'yes') return;
 
     try {
       await ApiService.completeWithdrawRequest(r['id']);

@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/features/product/models/product.dart';
 import 'package:mobile/core/services/api_service.dart';
+import 'package:mobile/core/services/deep_link_handler.dart';
 import 'package:mobile/core/widgets/retry_network_image.dart';
 import 'package:mobile/features/gacha/services/collection_store.dart';
 
@@ -2757,6 +2758,20 @@ class _DepositSheetContentState extends State<_DepositSheetContent> {
   }
 
   void _showVNPayTopUpDialog(String txnRef, String paymentUrl, double amount) {
+    final deepLink = DeepLinkHandler();
+    deepLink.startListening();
+    deepLink.onPaymentResult.listen((result) {
+      deepLink.stopListening();
+      _dialogActive = false;
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      widget.auth.refreshProfile();
+      if (mounted) {
+        _showSuccessDialog(amount);
+      }
+    });
+
     bool pollingStarted = false;
     showDialog(
       context: context,
@@ -2961,7 +2976,7 @@ class _DepositSheetContentState extends State<_DepositSheetContent> {
         }
       } else {
         // VNPay Flow
-        final response = await ApiService.createTopUpUrl(amount);
+        final response = await ApiService.createTopUpUrl(amount, platform: 'mobile');
         final paymentUrl = response['paymentUrl'] ?? '';
         final txnRef = response['txnRef'] ?? '';
         

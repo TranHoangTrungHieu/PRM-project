@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/features/product/models/product.dart';
 import 'package:mobile/features/cart/models/cart_item.dart';
 import 'package:mobile/features/order/models/order.dart';
-import 'package:mobile/features/trade/models/trade.dart';
+
 import 'package:mobile/features/auction/models/auction.dart';
 import 'package:mobile/features/chat/models/chat_message.dart';
 import 'package:mobile/features/auth/models/user.dart';
@@ -531,8 +531,8 @@ class ApiService {
     throw Exception('Failed to update shipping');
   }
 
-  static Future<String> createPaymentUrl(int orderId) async {
-    final response = await get('/api/payment/create-payment?orderId=$orderId');
+  static Future<String> createPaymentUrl(int orderId, {String platform = 'web'}) async {
+    final response = await get('/api/payment/create-payment?orderId=$orderId&platform=$platform');
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
       return data['data'];
@@ -540,8 +540,8 @@ class ApiService {
     throw Exception(data['message'] ?? 'Failed to generate payment URL');
   }
 
-  static Future<Map<String, String>> createTopUpUrl(double amount) async {
-    final response = await get('/api/payment/create-topup?amount=$amount');
+  static Future<Map<String, String>> createTopUpUrl(double amount, {String platform = 'web'}) async {
+    final response = await get('/api/payment/create-topup?amount=$amount&platform=$platform');
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
       return Map<String, String>.from(data['data']);
@@ -580,46 +580,6 @@ class ApiService {
       return data['data'];
     }
     throw Exception(data['message'] ?? 'Không thể đăng bán thẻ');
-  }
-
-  // Trades
-  static Future<List<Trade>> getUserTrades(int userId) async {
-    final response = await get('/api/trades/user/$userId');
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        final list = _extractList(data['data']);
-        return list.map((t) => Trade.fromJson(t)).toList();
-      }
-    }
-    return [];
-  }
-
-  static Future<Trade> createTrade(Map<String, dynamic> tradeData) async {
-    final response = await post('/api/trades', tradeData);
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200 && data['success'] == true) {
-      return Trade.fromJson(data['data']);
-    }
-    throw Exception(data['message'] ?? 'Trade proposal rejected');
-  }
-
-  static Future<Trade> acceptTrade(int id) async {
-    final response = await put('/api/trades/$id/accept');
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200 && data['success'] == true) {
-      return Trade.fromJson(data['data']);
-    }
-    throw Exception(data['message'] ?? 'Trade acceptance failed');
-  }
-
-  static Future<Trade> rejectTrade(int id) async {
-    final response = await put('/api/trades/$id/reject');
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200 && data['success'] == true) {
-      return Trade.fromJson(data['data']);
-    }
-    throw Exception(data['message'] ?? 'Trade rejection failed');
   }
 
   // Auctions

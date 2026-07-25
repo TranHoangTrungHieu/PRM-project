@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile/features/cart/providers/cart_provider.dart';
 import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/core/services/api_service.dart';
+import 'package:mobile/core/services/deep_link_handler.dart';
 import 'package:mobile/core/widgets/retry_network_image.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -92,7 +93,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
         }
       } else if (_selectedPaymentMethod == 'VNPAY') {
-        final paymentUrl = await ApiService.createPaymentUrl(createdOrder.id);
+        final paymentUrl = await ApiService.createPaymentUrl(createdOrder.id, platform: 'mobile');
         if (mounted) {
           _showVNPayDialog(createdOrder.id, paymentUrl);
         }
@@ -111,6 +112,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showVNPayDialog(int orderId, String paymentUrl) {
+    final deepLink = DeepLinkHandler();
+    deepLink.startListening();
+    deepLink.onPaymentResult.listen((result) {
+      deepLink.stopListening();
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      Provider.of<CartProvider>(context, listen: false).clearCart();
+      showNotificationPopup(
+        context: context,
+        title: 'Thành công! \u{1F389}',
+        message: 'Giao dịch thanh toán qua VNPay đã được ghi nhận. Đơn hàng của bạn đang được hệ thống xử lý!',
+        type: NotificationType.success,
+        confirmLabel: 'XEM ĐƠN HÀNG',
+        onConfirm: () {
+          Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false, arguments: 2);
+        },
+      );
+    });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -238,6 +259,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     // Finish button
                     TextButton(
                       onPressed: () {
+                        deepLink.stopListening();
                         Navigator.pop(ctx); // Close VNPay dialog
                         Provider.of<CartProvider>(context, listen: false).clearCart();
 
