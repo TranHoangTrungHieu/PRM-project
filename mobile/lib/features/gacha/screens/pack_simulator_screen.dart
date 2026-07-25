@@ -2832,34 +2832,11 @@ class _DepositSheetContentState extends State<_DepositSheetContent> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Quét mã QR dưới đây bằng App Ngân hàng hoặc Ví VNPay để thực hiện giao dịch thanh toán.',
+                        'Bấm vào nút bên dưới để mở trang thanh toán VNPay qua ngân hàng nội địa.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600, height: 1.4),
                       ),
                       const SizedBox(height: 20),
-                      
-                      Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(14),
-                        child: RetryNetworkImage(
-                          url: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${Uri.encodeComponent(paymentUrl)}',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      const SizedBox(height: 22),
                       
                       ElevatedButton.icon(
                         onPressed: () async {

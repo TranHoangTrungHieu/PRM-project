@@ -25,6 +25,7 @@ public class OrderDTO {
     private BigDecimal totalAmount;
     private OrderStatus status;
     private LocalDateTime createdAt;
+    private String bankTranDateTime;
     private Long auctionId;
     private String cancelReason;
     private String cancelledBy;

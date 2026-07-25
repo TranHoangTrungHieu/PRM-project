@@ -26,9 +26,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   @override
-  void didUpdateWidget(OrderHistoryScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.isSelected && _orders.isNotEmpty) {
       _fetchOrders();
     }
   }
@@ -277,6 +277,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               'Ngày đặt: ${(order.createdAt != null && order.createdAt.length >= 16) ? order.createdAt.replaceFirst('T', ' ').substring(0, 16) : (order.createdAt ?? '')}',
               style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
             ),
+            if (order.bankTranDateTime != null && order.bankTranDateTime!.length == 14)
+              Text(
+                'GD Ngân hàng: ${order.bankTranDateTime!.substring(0, 4)}-${order.bankTranDateTime!.substring(4, 6)}-${order.bankTranDateTime!.substring(6, 8)} ${order.bankTranDateTime!.substring(8, 10)}:${order.bankTranDateTime!.substring(10, 12)}:${order.bankTranDateTime!.substring(12, 14)}',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+              ),
             const Divider(height: 20),
             
             // Items

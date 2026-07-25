@@ -265,6 +265,10 @@ public class PaymentService {
             }
             if ("00".equals(responseCode)) {
                 log.info("VNPay Payment SUCCESS for Top-Up ID: {}", txnRef);
+                String bankTranDateTime = params.get("vnp_PayDate");
+                if (bankTranDateTime != null && !bankTranDateTime.isEmpty()) {
+                    transaction.setBankTranDateTime(bankTranDateTime);
+                }
                 transaction.setStatus("SUCCESS");
                 topUpTransactionRepository.save(transaction);
                 
@@ -294,6 +298,15 @@ public class PaymentService {
         if ("00".equals(responseCode)) {
             log.info("VNPay Payment SUCCESS for Order ID: {}", orderId);
             orderService.updateOrderStatus(orderId, OrderStatus.PROCESSING);
+
+            String bankTranDateTime = params.get("vnp_PayDate");
+            if (bankTranDateTime != null && !bankTranDateTime.isEmpty()) {
+                orderRepository.findById(orderId).ifPresent(order -> {
+                    order.setBankTranDateTime(bankTranDateTime);
+                    orderRepository.save(order);
+                    log.info("Stored bank transaction date/time {} for Order ID: {}", bankTranDateTime, orderId);
+                });
+            }
             return true;
         } else {
             log.warn("VNPay Payment FAILED/CANCELLED for Order ID: {} with response code: {}", orderId, responseCode);

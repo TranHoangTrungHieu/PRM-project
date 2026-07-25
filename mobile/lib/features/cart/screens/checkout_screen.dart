@@ -7,7 +7,6 @@ import 'package:mobile/features/cart/providers/cart_provider.dart';
 import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/core/services/api_service.dart';
 import 'package:mobile/core/services/deep_link_handler.dart';
-import 'package:mobile/core/widgets/retry_network_image.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -120,6 +119,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Navigator.of(context, rootNavigator: true).pop();
       }
       Provider.of<CartProvider>(context, listen: false).clearCart();
+      try {
+        Provider.of<AuthProvider>(context, listen: false).refreshProfile();
+      } catch (_) {}
       showNotificationPopup(
         context: context,
         title: 'Thành công! \u{1F389}',
@@ -177,35 +179,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Quét mã QR dưới đây bằng App Ngân hàng hoặc Ví VNPay để thanh toán đơn hàng.',
+                      'Bấm vào nút bên dưới để mở trang thanh toán VNPay qua ngân hàng nội địa.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600, height: 1.4),
                     ),
                     const SizedBox(height: 20),
-                    
-                    // QR Code box
-                    Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(14),
-                      child: RetryNetworkImage(
-                        url: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${Uri.encodeComponent(paymentUrl)}',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(height: 22),
                     
                     // Open browser button
                     ElevatedButton.icon(
@@ -250,39 +228,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         side: const BorderSide(color: Color(0xFFE53935), width: 1.5),
                         minimumSize: const Size(double.infinity, 48),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    
-                    // Finish button
-                    TextButton(
-                      onPressed: () {
-                        deepLink.stopListening();
-                        Navigator.pop(ctx); // Close VNPay dialog
-                        Provider.of<CartProvider>(context, listen: false).clearCart();
-
-                        // Show success payment popup
-                        showNotificationPopup(
-                          context: context,
-                          title: 'Thành công! 🎉',
-                          message: 'Giao dịch thanh toán qua VNPay đã được ghi nhận. Đơn hàng của bạn đang được hệ thống xử lý!',
-                          type: NotificationType.success,
-                          confirmLabel: 'XEM ĐƠN HÀNG',
-                          onConfirm: () {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/dashboard',
-                              (route) => false,
-                              arguments: 2,
-                            );
-                          },
-                        );
-                      },
-                      child: const Text(
-                        'TÔI ĐÃ THANH TOÁN XONG',
-                        style: TextStyle(color: Color(0xFFE53935), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.8),
                       ),
                     ),
                   ],

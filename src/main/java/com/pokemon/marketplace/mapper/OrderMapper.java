@@ -28,6 +28,7 @@ public class OrderMapper {
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
+                .bankTranDateTime(order.getBankTranDateTime())
                 .auctionId(order.getAuctionId())
                 .cancelReason(order.getCancelReason())
                 .cancelledBy(order.getCancelledBy())

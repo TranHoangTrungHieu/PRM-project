@@ -51,6 +51,9 @@ public class Order {
     @Field("created_at")
     private LocalDateTime createdAt;
 
+    @Field("bank_tran_date_time")
+    private String bankTranDateTime; // vnp_PayDate from VNPay callback (yyyyMMddHHmmss)
+
     @Field("auction_id")
     private Long auctionId;
 
